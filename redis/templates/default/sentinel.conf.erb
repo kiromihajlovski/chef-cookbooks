@@ -1,0 +1,6 @@
+daemonize yes
+port <%= @port %>
+sentinel monitor mymaster 127.0.0.1 <%= @master_port %> 2
+sentinel down-after-milliseconds mymaster 60000
+sentinel failover-timeout mymaster 180000
+sentinel parallel-syncs mymaster 1

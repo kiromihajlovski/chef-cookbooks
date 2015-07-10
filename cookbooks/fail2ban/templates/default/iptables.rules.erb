@@ -1,0 +1,51 @@
+*filter
+:INPUT ACCEPT [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [11747:941399]
+
+
+#Allow RELATED,ESTABLISHED
+-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+
+# Allow all internal/loopback traffic
+-A INPUT -i lo -j ACCEPT
+
+#Allow all from Chef-server
+-A INPUT -p tcp -s 54.247.88.97 -j ACCEPT
+
+#Allow ssh from Cuponation-Germany
+-A INPUT -s 82.135.32.210 -p tcp -m tcp --dport 22 -j ACCEPT
+
+#Allow ssh from Cuponation-Macedonia
+-A INPUT -s 89.205.81.195 -p tcp -m tcp --dport 22 -j ACCEPT
+
+#Allow http, https, mysql
+-A INPUT -p tcp -m tcp --dport 80 -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 443 -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 3306 -j ACCEPT
+
+#Disable attacks
+-A INPUT -p tcp -m tcp --tcp-flags FIN,SYN,RST,PSH,ACK,URG NONE -j DROP
+-A INPUT -p tcp -m tcp --tcp-flags FIN,SYN FIN,SYN -j DROP
+-A INPUT -p tcp -m tcp --tcp-flags SYN,RST SYN,RST -j DROP
+-A INPUT -p tcp -m tcp --tcp-flags FIN,RST FIN,RST -j DROP
+-A INPUT -p tcp -m tcp --tcp-flags FIN,ACK FIN -j DROP
+-A INPUT -p tcp -m tcp --tcp-flags PSH,ACK PSH -j DROP
+-A INPUT -p tcp -m tcp --tcp-flags ACK,URG URG -j DROP
+
+
+# some (minor) flooding preventions FORWARD ACCEPT
+-A FORWARD -p tcp --syn -m limit --limit 1/s -j ACCEPT
+-A FORWARD -p icmp -m limit --limit 1/s -j ACCEPT
+-A FORWARD -p tcp --tcp-flags ALL NONE -m limit --limit 1/h -j ACCEPT
+-A FORWARD -p tcp --tcp-flags ALL ALL -m limit --limit 1/h -j ACCEPT
+
+# some (minor) flooding preventions INPUT ACCEPT
+-A INPUT -p icmp -m limit --limit 1/s --limit-burst 2 -j ACCEPT
+-A INPUT -p udp -m limit --limit 1/s --limit-burst 3 -j ACCEPT
+
+
+#Reject Everithing
+-A INPUT -j DROP
+-A FORWARD -j DROP
+COMMIT
